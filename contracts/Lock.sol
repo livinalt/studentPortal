@@ -1,34 +1,79 @@
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.27;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.20;
 
-// Uncomment this line to use console.log
-// import "hardhat/console.sol";
+contract StudentPortal{
 
-contract Lock {
-    uint public unlockTime;
-    address payable public owner;
+   event StudentRegisterd(uint256 indexed id, string indexed _name, string indexed _country);
+   event ReturnedStudentId(string indexed _name);
 
-    event Withdrawal(uint amount, uint when);
+   
+    address owner;
+    uint256 numberOfStudents;
+    
+     struct StudentRecord{
+        uint256 id;
+        string name;
+        string email;
+        string birthday;
+        string lga;
+        string country;
+        string state;
+        bool isRegistered;
+     }
 
-    constructor(uint _unlockTime) payable {
-        require(
-            block.timestamp < _unlockTime,
-            "Unlock time should be in the future"
-        );
+      StudentRecord[] allRecords;
 
-        unlockTime = _unlockTime;
-        owner = payable(msg.sender);
+
+    constructor(){
+        owner = msg.sender;
     }
 
-    function withdraw() public {
-        // Uncomment this line, and the import of "hardhat/console.sol", to print a log in your terminal
-        // console.log("Unlock time is %o and block timestamp is %o", unlockTime, block.timestamp);
-
-        require(block.timestamp >= unlockTime, "You can't withdraw yet");
-        require(msg.sender == owner, "You aren't the owner");
-
-        emit Withdrawal(address(this).balance, block.timestamp);
-
-        owner.transfer(address(this).balance);
+    modifier onlyOwner(){
+        require(owner == msg.sender, "You don't have the priviledge right for this operation");
+        _;
     }
+
+     
+     function registerStudent(
+        string memory _name, 
+        string memory _email, 
+        string memory _birthday, 
+        string memory _lga, 
+        string memory _country, 
+        string memory _state) external{
+
+            uint256 id = allRecords.length + 1;
+            StudentRecord memory newRecord = StudentRecord(id, _name, _email, _birthday,_lga, _country, _state, false);
+            allRecords.push(newRecord);
+         
+         emit StudentRegisterd(id, _name, _country);
+
+     }
+
+     function getStudent(uint256 _id) external view returns(StudentRecord memory){
+      require(_id <= allRecords.length,"Id not available");
+        return allRecords[_id];
+
+     }
+
+     function getAllStudents() external view returns(StudentRecord[] memory){
+        return allRecords;
+     }
+
+     function removeStudent(uint256 _id) external onlyOwner{
+      require(_id <= allRecords.length,"Id not available");
+        delete allRecords[_id];
+        numberOfStudents = allRecords.length - 1;
+
+     }
+
+    //  function updateStudentRecord(uint _id, string memory _name, string memory, string memory _lga,string memory _country, 
+    //     string memory _state ) external {
+    //         require(_id == allRecords[]._id)
+
+    //  }
+
+
+
+
 }
